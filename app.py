@@ -62,14 +62,13 @@ def get_ticket_price(city: str) -> str:
 
 def artist(city: str) -> Image.Image:
     image_response = client.images.generate(
-        model="dall-e-3",
+        model="gpt-image-1",
         prompt=(
             f"An image representing a vacation in {city}, showing tourist spots and "
             f"everything unique about {city}, in a vibrant pop-art style"
         ),
         size="1024x1024",
         n=1,
-        response_format="b64_json",
     )
     image_data = base64.b64decode(image_response.data[0].b64_json)
     return Image.open(BytesIO(image_data))
@@ -130,7 +129,7 @@ def submit_message(message, history):
 def build_ui():
     with gr.Blocks() as ui:
         with gr.Row():
-            chatbot = gr.Chatbot(height=500, type="messages")
+            chatbot = gr.Chatbot(height=500)
             image_output = gr.Image(height=500, interactive=False)
         with gr.Row():
             audio_output = gr.Audio(autoplay=True)
