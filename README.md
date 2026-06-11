@@ -15,7 +15,7 @@ The chatbot answers questions using GPT-4.1-mini, looks up return ticket prices 
 
 ## Setup
 
-Prerequisites: Python 3.11+, [uv](https://docs.astral.sh/uv/)
+Prerequisites: Python 3.11+, [uv](https://docs.astral.sh/uv)
 
 ```bash
 git clone <repo-url>
