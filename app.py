@@ -108,9 +108,9 @@ def chat(history):
     image = None
 
     while response.choices[0].finish_reason == "tool_calls":
-        msg = response.choices[0].message
-        responses, cities = handle_tool_calls(msg)
-        messages.append(msg)
+        message = response.choices[0].message
+        responses, cities = handle_tool_calls(message)
+        messages.append(message)
         messages.extend(responses)
         response = client.chat.completions.create(model=MODEL, messages=messages, tools=tools)
 
