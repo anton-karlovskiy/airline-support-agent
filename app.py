@@ -2,9 +2,11 @@ import json
 import base64
 import sqlite3
 from io import BytesIO
+from typing import TypeAlias
 
 from dotenv import load_dotenv
 from openai import OpenAI
+from openai.types.chat import ChatCompletionMessage
 import gradio as gr
 from PIL import Image
 
@@ -13,6 +15,8 @@ load_dotenv(override=True)
 MODEL = "gpt-4.1-mini"
 client = OpenAI()
 DB = "prices.db"
+
+ChatMessage: TypeAlias = dict[str, str]
 
 system_message = """
 You are a helpful assistant for an Airline called FlightAI.
@@ -38,7 +42,7 @@ price_function = {
 tools = [{"type": "function", "function": price_function}]
 
 
-def init_db():
+def init_db() -> None:
     with sqlite3.connect(DB) as conn:
         cursor = conn.cursor()
         cursor.execute("CREATE TABLE IF NOT EXISTS prices (city TEXT PRIMARY KEY, price REAL)")
@@ -83,7 +87,7 @@ def text_to_speech(message: str) -> bytes:
     return response.content
 
 
-def handle_tool_calls(message):
+def handle_tool_calls(message: ChatCompletionMessage) -> tuple[list[ChatMessage], list[str]]:
     responses = []
     cities = []
     for tool_call in message.tool_calls:
@@ -98,7 +102,7 @@ def handle_tool_calls(message):
     return responses, cities
 
 
-def chat(history):
+def chat(history: list[ChatMessage]) -> tuple[list[ChatMessage], bytes, Image.Image | None]:
     messages = [{"role": "system", "content": system_message}] + [
         {"role": entry["role"], "content": entry["content"]} for entry in history
     ]
@@ -122,11 +126,11 @@ def chat(history):
     return history, voice, image
 
 
-def submit_message(message, history):
+def submit_message(message: str, history: list[ChatMessage]) -> tuple[str, list[ChatMessage]]:
     return "", history + [{"role": "user", "content": message}]
 
 
-def build_ui():
+def build_ui() -> gr.Blocks:
     with gr.Blocks() as interface:
         with gr.Row():
             chatbot = gr.Chatbot(height=500)
