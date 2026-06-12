@@ -2,7 +2,7 @@
 
 A multimodal AI customer support chatbot for the fictional airline FlightAI, built with OpenAI and Gradio. Ask about ticket prices and get a text reply, spoken audio, and a generated destination image all at once.
 
-The chatbot answers questions using GPT-4.1-mini, looks up return ticket prices from a local SQLite database via tool use, reads every reply aloud with OpenAI TTS (Onyx voice), and generates a DALL-E 3 image when a destination city comes up.
+The chatbot answers questions using GPT-4.1-mini, looks up return ticket prices from a local SQLite database via tool use, reads every reply aloud with OpenAI TTS (Onyx voice), and generates a gpt-image-1 image when a destination city comes up.
 
 ## Seeded destinations
 
