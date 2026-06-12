@@ -44,9 +44,9 @@ def init_db():
         cursor.execute("CREATE TABLE IF NOT EXISTS prices (city TEXT PRIMARY KEY, price REAL)")
         cursor.execute("SELECT COUNT(*) FROM prices")
         if cursor.fetchone()[0] == 0:
-            seed = {"london": 799, "paris": 899, "tokyo": 1420, "sydney": 2999}
+            initial_prices = {"london": 799, "paris": 899, "tokyo": 1420, "sydney": 2999}
             cursor.executemany(
-                "INSERT INTO prices (city, price) VALUES (?, ?)", seed.items()
+                "INSERT INTO prices (city, price) VALUES (?, ?)", initial_prices.items()
             )
         conn.commit()
 
@@ -60,7 +60,7 @@ def get_ticket_price(city: str) -> str:
     return f"Ticket price to {city} is ${result[0]}" if result else "No price data available for this city"
 
 
-def artist(city: str) -> Image.Image:
+def generate_destination_image(city: str) -> Image.Image:
     image_response = client.images.generate(
         model="gpt-image-1",
         prompt=(
@@ -74,7 +74,7 @@ def artist(city: str) -> Image.Image:
     return Image.open(BytesIO(image_data))
 
 
-def talker(message: str) -> bytes:
+def text_to_speech(message: str) -> bytes:
     response = client.audio.speech.create(
         model="gpt-4o-mini-tts",
         voice="onyx",
@@ -100,7 +100,7 @@ def handle_tool_calls(message):
 
 def chat(history):
     messages = [{"role": "system", "content": system_message}] + [
-        {"role": h["role"], "content": h["content"]} for h in history
+        {"role": entry["role"], "content": entry["content"]} for entry in history
     ]
     response = client.chat.completions.create(model=MODEL, messages=messages, tools=tools)
     cities = []
@@ -115,9 +115,9 @@ def chat(history):
 
     reply = response.choices[0].message.content
     history = list(history) + [{"role": "assistant", "content": reply}]
-    voice = talker(reply)
+    voice = text_to_speech(reply)
     if cities:
-        image = artist(cities[0])
+        image = generate_destination_image(cities[0])
 
     return history, voice, image
 
@@ -127,25 +127,25 @@ def submit_message(message, history):
 
 
 def build_ui():
-    with gr.Blocks() as ui:
+    with gr.Blocks() as interface:
         with gr.Row():
             chatbot = gr.Chatbot(height=500)
             image_output = gr.Image(height=500, interactive=False)
         with gr.Row():
             audio_output = gr.Audio(autoplay=True)
         with gr.Row():
-            message = gr.Textbox(label="Chat with our AI Assistant:")
+            message_input = gr.Textbox(label="Chat with our AI Assistant:")
 
-        message.submit(
+        message_input.submit(
             submit_message,
-            inputs=[message, chatbot],
-            outputs=[message, chatbot],
+            inputs=[message_input, chatbot],
+            outputs=[message_input, chatbot],
         ).then(
             chat,
             inputs=chatbot,
             outputs=[chatbot, audio_output, image_output],
         )
-    return ui
+    return interface
 
 
 if __name__ == "__main__":
